@@ -1,192 +1,207 @@
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import time
 
 # Page configuration
 st.set_page_config(page_title="COMSATS Musical Night", page_icon="🎸", layout="centered")
 
-# Initialize session state for the dataframe
+# Initialize session state
 if 'df' not in st.session_state:
     st.session_state.df = None
 
-# Audio Player Function (Autoplay Sound Effects)
-def play_sound(status):
+# Guaranteed Sound Effect Generator (Web Audio API + Live Crowd Audio)
+def trigger_sound(status):
+    timestamp = time.time()
     if status == "success":
-        # Crowd Cheering Sound
-        sound_url = "https://upload.wikimedia.org/wikipedia/commons/3/34/Sound_Effect_-_Crowd_Cheering.ogg"
-        audio_type = "audio/ogg"
+        js_code = f"""
+        <!-- trigger: {timestamp} -->
+        <script>
+        (function() {{
+            try {{
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioCtx();
+                // Musical Victory Fanfare Notes (C5, E5, G5, C6)
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, idx) => {{
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
+                    gain.gain.setValueAtTime(0.35, ctx.currentTime + idx * 0.12);
+                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.45);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + idx * 0.12);
+                    osc.stop(ctx.currentTime + idx * 0.12 + 0.45);
+                }});
+                // Play additional cheering audio
+                const cheer = new Audio("https://actions.google.com/sounds/v1/crowds/battle_crowd_celebrate_stutter.ogg");
+                cheer.volume = 0.8;
+                cheer.play().catch(e => console.log(e));
+            }} catch(e) {{ console.error(e); }}
+        }})();
+        </script>
+        """
     else:
-        # Error Buzzer Sound
-        sound_url = "https://upload.wikimedia.org/wikipedia/commons/d/d4/Buzzer.ogg"
-        audio_type = "audio/ogg"
-        
-    audio_html = f"""
-        <audio autoplay style="display:none;">
-            <source src="{sound_url}" type="{audio_type}">
-        </audio>
-    """
-    st.markdown(audio_html, unsafe_allow_html=True)
+        js_code = f"""
+        <!-- trigger: {timestamp} -->
+        <script>
+        (function() {{
+            try {{
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioCtx();
+                // Double Security Buzzer
+                [0, 0.25].forEach((delay) => {{
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(140, ctx.currentTime + delay);
+                    osc.frequency.setValueAtTime(95, ctx.currentTime + delay + 0.1);
+                    gain.gain.setValueAtTime(0.4, ctx.currentTime + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.22);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime + delay);
+                    osc.stop(ctx.currentTime + delay + 0.22);
+                }});
+            }} catch(e) {{ console.error(e); }}
+        }})();
+        </script>
+        """
+    components.html(js_code, height=1)
 
-# Advanced UI with Background Image & Custom CSS
+# Bright & Visible Concert Stage Background + Neon UI Styling
 st.markdown("""
     <style>
-    /* Concert Background Image with Dark Overlay */
-    .stApp {
-        background: linear-gradient(rgba(10, 5, 25, 0.85), rgba(15, 5, 30, 0.95)), 
-                    url('https://images.unsplash.com/photo-1470229722913-7c092b2472d5?q=80&w=1920&auto=format&fit=crop');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        color: #ffffff;
+    /* Bright Live Concert Crowd & Stage Lasers Background */
+    .stApp, [data-testid="stAppViewContainer"] {
+        background: 
+            radial-gradient(circle at 20% 15%, rgba(255, 0, 127, 0.35) 0%, rgba(0, 0, 0, 0) 40%),
+            radial-gradient(circle at 80% 15%, rgba(0, 240, 255, 0.35) 0%, rgba(0, 0, 0, 0) 40%),
+            linear-gradient(180deg, rgba(12, 4, 28, 0.50) 0%, rgba(10, 3, 24, 0.72) 100%),
+            url('https://images.unsplash.com/photo-1514525253161-7a46d19cd819?q=80&w=1920&auto=format&fit=crop') !important;
+        background-size: cover !important;
+        background-position: center center !important;
+        background-attachment: fixed !important;
+        color: #ffffff !important;
     }
 
-    /* Concert Aesthetic Header overlay */
+    [data-testid="stHeader"] {
+        background: rgba(10, 3, 24, 0.4) !important;
+    }
+
+    /* Concert Header Banner */
     .hero-container {
         text-align: center;
-        padding: 30px 10px;
-        background: linear-gradient(180deg, rgba(236, 72, 153, 0.2) 0%, rgba(0,0,0,0) 100%);
-        border-radius: 20px;
-        margin-bottom: 25px;
-        border-bottom: 1px solid rgba(236, 72, 153, 0.4);
-        backdrop-filter: blur(5px);
+        padding: 28px 20px;
+        background: rgba(18, 6, 40, 0.78);
+        border: 2px solid #ff007f;
+        border-radius: 22px;
+        margin-bottom: 20px;
+        box-shadow: 0 0 35px rgba(255, 0, 127, 0.45), inset 0 0 20px rgba(0, 240, 255, 0.2);
+        backdrop-filter: blur(10px);
+    }
+
+    .festival-sub {
+        font-size: 15px;
+        letter-spacing: 5px;
+        color: #00f0ff;
+        text-shadow: 0 0 12px #00f0ff;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 8px;
     }
 
     .festival-title {
         font-family: 'Montserrat', 'Impact', sans-serif;
-        font-size: 45px;
+        font-size: 44px;
         font-weight: 900;
         text-transform: uppercase;
         letter-spacing: 3px;
-        background: linear-gradient(45deg, #ff007f, #7f00ff, #00f0ff);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-shadow: 0 0 40px rgba(127, 0, 255, 0.8);
+        color: #ffffff;
+        text-shadow: 0 0 15px #ff007f, 0 0 35px #7f00ff;
         margin: 5px 0;
     }
 
-    .festival-sub {
-        font-size: 16px;
-        letter-spacing: 5px;
-        color: #00f0ff;
-        text-shadow: 0 0 15px rgba(0, 240, 255, 0.8);
-        font-weight: 700;
-        text-transform: uppercase;
-        margin-bottom: 5px;
+    .campus-tag {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 5px 18px;
+        background: rgba(0, 240, 255, 0.18);
+        border: 1px solid #00f0ff;
+        border-radius: 30px;
+        color: #e2f1ff;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
     }
 
-    /* Beautiful Glass Cards */
-    .glass-panel {
-        background: rgba(10, 5, 25, 0.6);
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        border: 1px solid rgba(0, 240, 255, 0.3);
-        padding: 35px 25px;
-        border-radius: 25px;
-        box-shadow: 0 15px 40px 0 rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(127, 0, 255, 0.2);
-        text-align: center;
+    /* Style Streamlit Native Bordered Container as VIP Glass Panel */
+    [data-testid="stVerticalBlockBorderWrapper"] {
+        background: rgba(14, 5, 32, 0.82) !important;
+        backdrop-filter: blur(14px) !important;
+        border: 2px solid #00f0ff !important;
+        border-radius: 24px !important;
+        padding: 25px !important;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 240, 255, 0.35) !important;
     }
 
-    /* -------------------------------------------
-       FUTURISTIC FILE UPLOADER CUSTOMIZATION 
-       ------------------------------------------- */
+    /* Futuristic File Uploader Styling */
     [data-testid="stFileUploadDropzone"] {
-        background: rgba(0, 0, 0, 0.5) !important;
-        border: 2px dashed #00f0ff !important;
-        border-radius: 20px !important;
-        padding: 40px !important;
-        position: relative;
-        overflow: hidden;
-        transition: all 0.4s ease !important;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
+        background: rgba(25, 8, 55, 0.85) !important;
+        border: 2px dashed #ff007f !important;
+        border-radius: 18px !important;
+        padding: 30px !important;
+        box-shadow: inset 0 0 20px rgba(255, 0, 127, 0.25) !important;
+        transition: all 0.3s ease !important;
     }
 
     [data-testid="stFileUploadDropzone"]:hover {
-        background: rgba(0, 240, 255, 0.1) !important;
-        border: 2px solid #ff007f !important;
-        box-shadow: 0 0 30px rgba(255, 0, 127, 0.5), inset 0 0 20px rgba(0, 240, 255, 0.2) !important;
-    }
-
-    [data-testid="stFileUploadDropzone"] > div > div > span,
-    [data-testid="stFileUploadDropzone"] > div > div > small,
-    [data-testid="stFileUploadDropzone"] > div > div > div > svg {
-        display: none !important;
-    }
-
-    [data-testid="stFileUploadDropzone"] > div > div::before {
-        content: "⚠️ SECURE UPLOAD: GUEST DATABASE (.XLSX) ⚠️";
-        display: block;
-        color: #00f0ff;
-        font-size: 18px;
-        font-weight: 800;
-        letter-spacing: 2px;
-        text-align: center;
-        text-shadow: 0 0 10px rgba(0, 240, 255, 0.8);
-        margin-bottom: 25px;
-        animation: pulseText 2s infinite;
+        border: 2px solid #00f0ff !important;
+        box-shadow: 0 0 25px rgba(0, 240, 255, 0.6) !important;
     }
 
     [data-testid="stFileUploadDropzone"] button {
         background: linear-gradient(90deg, #ff007f, #7f00ff) !important;
-        color: white !important;
-        border: none !important;
+        color: #ffffff !important;
+        border: 1px solid #00f0ff !important;
         border-radius: 10px !important;
-        font-weight: 900 !important;
-        letter-spacing: 1px !important;
-        padding: 10px 30px !important;
-        box-shadow: 0 0 15px rgba(255, 0, 127, 0.6) !important;
-        transition: transform 0.2s ease !important;
-    }
-    
-    [data-testid="stFileUploadDropzone"] button:hover {
-        transform: scale(1.05) !important;
-        box-shadow: 0 0 25px rgba(127, 0, 255, 0.9) !important;
+        font-weight: 800 !important;
+        padding: 8px 24px !important;
     }
 
-    /* Advanced PIN-Pad Style Input Box */
+    /* VIP PIN-Pad Input Box */
     input[type="text"] {
-        background-color: rgba(0, 0, 0, 0.7) !important;
-        border: 2px solid #7f00ff !important;
-        border-radius: 15px !important;
+        background-color: rgba(5, 2, 15, 0.9) !important;
+        border: 2px solid #ff007f !important;
+        border-radius: 16px !important;
         color: #00f0ff !important;
-        font-size: 40px !important;
+        font-size: 42px !important;
         font-weight: 900 !important;
         text-align: center !important;
-        letter-spacing: 20px !important;
+        letter-spacing: 18px !important;
         height: 85px !important;
-        box-shadow: inset 0 0 20px rgba(0,0,0,0.9);
-        transition: all 0.3s ease;
-    }
-    input[type="text"]:focus {
-        border-color: #00f0ff !important;
-        box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), inset 0 0 20px rgba(0, 240, 255, 0.3) !important;
-        color: #ffffff !important;
-    }
-    input[type="text"]::placeholder {
-        color: rgba(255, 255, 255, 0.15) !important;
-        letter-spacing: 5px !important;
-        font-size: 20px !important;
+        box-shadow: 0 0 20px rgba(255, 0, 127, 0.4) !important;
     }
 
-    /* Neon Pulsing Button Customization */
-    button[kind="primary"] {
-        background: linear-gradient(45deg, #ff007f, #7f00ff) !important;
-        border: none !important;
-        color: white !important;
-        font-size: 22px !important;
-        font-weight: 800 !important;
-        letter-spacing: 3px !important;
-        padding: 15px !important;
-        border-radius: 15px !important;
-        box-shadow: 0 0 20px rgba(255, 0, 127, 0.6) !important;
-        animation: pulse 2s infinite !important;
-        transition: transform 0.2s ease;
+    input[type="text"]:focus {
+        border-color: #00f0ff !important;
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.8) !important;
+        color: #ffffff !important;
     }
-    button[kind="primary"]:hover {
-        transform: scale(1.02);
-        box-shadow: 0 0 35px rgba(0, 240, 255, 0.9) !important;
+
+    /* Neon Pulsing Button */
+    button[kind="primary"] {
+        background: linear-gradient(45deg, #ff007f, #7f00ff, #00f0ff) !important;
+        border: none !important;
+        color: #ffffff !important;
+        font-size: 20px !important;
+        font-weight: 900 !important;
+        letter-spacing: 2.5px !important;
+        padding: 16px !important;
+        border-radius: 15px !important;
+        box-shadow: 0 0 25px rgba(255, 0, 127, 0.7) !important;
     }
 
     /* Active Database Badge */
@@ -195,133 +210,106 @@ st.markdown("""
         background: rgba(0, 255, 135, 0.2);
         border: 1px solid #00ff87;
         color: #00ff87;
-        padding: 8px 20px;
+        padding: 8px 18px;
         border-radius: 50px;
-        font-size: 14px;
-        font-weight: bold;
+        font-size: 13px;
+        font-weight: 800;
         letter-spacing: 1px;
-        margin-bottom: 20px;
-        box-shadow: 0 0 20px rgba(0, 255, 135, 0.4);
+        box-shadow: 0 0 15px rgba(0, 255, 135, 0.4);
     }
 
-    /* Success / Reject Cards */
+    /* Granted & Denied Cards */
     .pass-glow-card {
-        background: linear-gradient(135deg, rgba(20, 10, 45, 0.95), rgba(45, 10, 60, 0.95));
+        background: rgba(10, 35, 30, 0.92);
         border: 2px solid #00ff87;
-        box-shadow: 0 0 40px rgba(0, 255, 135, 0.5), inset 0 0 20px rgba(0, 255, 135, 0.2);
-        padding: 40px 25px;
-        border-radius: 25px;
+        box-shadow: 0 0 40px rgba(0, 255, 135, 0.6);
+        padding: 35px 25px;
+        border-radius: 22px;
         text-align: center;
-        animation: cardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         margin-top: 20px;
-    }
-    .reject-glow-card {
-        background: rgba(40, 5, 20, 0.95);
-        border: 2px solid #ff0055;
-        box-shadow: 0 0 35px rgba(255, 0, 85, 0.6);
-        padding: 30px 20px;
-        border-radius: 25px;
-        text-align: center;
-        color: #ffccd5;
-        font-size: 18px;
-        font-weight: 600;
-        margin-top: 20px;
-        animation: shake 0.4s ease-in-out;
     }
 
-    @keyframes pulse {
-        0% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
-        50% { box-shadow: 0 0 35px rgba(127, 0, 255, 0.8); }
-        100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
-    }
-    @keyframes cardPop {
-        0% { transform: scale(0.8) translateY(20px); opacity: 0; }
-        100% { transform: scale(1) translateY(0); opacity: 1; }
-    }
-    @keyframes pulseText {
-        0% { opacity: 0.7; }
-        50% { opacity: 1; text-shadow: 0 0 25px rgba(0, 240, 255, 1); }
-        100% { opacity: 0.7; }
-    }
-    @keyframes shake {
-        0%, 100% { transform: translateX(0); }
-        25% { transform: translateX(-10px); }
-        75% { transform: translateX(10px); }
+    .reject-glow-card {
+        background: rgba(45, 5, 20, 0.92);
+        border: 2px solid #ff0055;
+        box-shadow: 0 0 40px rgba(255, 0, 85, 0.6);
+        padding: 30px 20px;
+        border-radius: 22px;
+        text-align: center;
+        color: #ffe0e6;
+        margin-top: 20px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# 1. Header Section
+# 1. Concert Hero Banner
 st.markdown("""
     <div class="hero-container">
-        <div class="festival-sub">🎵 VIP GATEWAY 🎵</div>
-        <div class="festival-title">COMSATS Musical Night</div>
+        <div class="festival-sub">🎵 LIVE CONCERT GATEWAY 🎵</div>
+        <div class="festival-title">🎸 COMSATS Musical Night</div>
+        <div class="campus-tag">ISLAMABAD • ATTOCK CAMPUS</div>
     </div>
 """, unsafe_allow_html=True)
 
-# 2. Logic: Show Custom Uploader OR Show Entry System
-if st.session_state.df is None:
-    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    
-    uploaded_file = st.file_uploader("", type=['xlsx', 'xls'])
-    if uploaded_file is not None:
-        try:
-            with st.spinner("Encrypting and loading database..."):
-                time.sleep(1) # Fake delay for tech feel
-                st.session_state.df = pd.read_excel(uploaded_file)
-                st.rerun() 
-        except Exception as e:
-            st.error(f"Error loading database: {e}")
-    st.markdown("</div>", unsafe_allow_html=True)
+# 2. Main Gate Container
+with st.container(border=True):
+    if st.session_state.df is None:
+        st.markdown("<h3 style='text-align:center; color:#00f0ff; margin-bottom:5px;'>📂 UPLOAD GUEST LIST DATABASE</h3>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align:center; color:#cbd5e1; font-size:14px;'>Select the official Excel sheet (.xlsx) to unlock the VIP verification terminal</p>", unsafe_allow_html=True)
+        
+        uploaded_file = st.file_uploader("Upload Participant Excel File", type=['xlsx', 'xls'], label_visibility="collapsed")
+        if uploaded_file is not None:
+            try:
+                with st.spinner("Loading concert guest database..."):
+                    time.sleep(0.8)
+                    st.session_state.df = pd.read_excel(uploaded_file)
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Error loading file: {e}")
+    else:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            st.markdown("<div class='active-db-badge'>🟢 GUEST DATABASE ACTIVE</div>", unsafe_allow_html=True)
+        with col2:
+            if st.button("🔄 Reset", use_container_width=True):
+                st.session_state.df = None
+                st.rerun()
 
-else:
-    # 3. Serial Number Entry System (Active Mode)
-    st.markdown("<div class='glass-panel'>", unsafe_allow_html=True)
-    
-    # Database Active Badge & Reset Button
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.markdown("<div class='active-db-badge'>🟢 GUEST DATABASE SECURE & ACTIVE</div>", unsafe_allow_html=True)
-    with col2:
-        if st.button("🔄 Reset"):
-            st.session_state.df = None
-            st.rerun()
+        st.markdown("<h3 style='text-align:center; color:#ffffff; margin-top:15px;'>🎟️ ENTER 3-DIGIT SERIAL NO</h3>", unsafe_allow_html=True)
+        sr_no = st.text_input("Serial Code", max_chars=3, placeholder="001", label_visibility="collapsed")
+        st.write("")
+        verify_btn = st.button("⚡ AUTHENTICATE ENTRY ⚡", type="primary", use_container_width=True)
 
-    st.markdown("<h4 style='color:#e2e8f0; margin-bottom: 20px; font-weight:600; text-transform:uppercase;'>Enter Ticket Serial Code</h4>", unsafe_allow_html=True)
-    
-    # Giant PIN-pad style input
-    sr_no = st.text_input("", max_chars=3, placeholder="___")
-    
-    st.write("") # Spacing
-    verify_btn = st.button("⚡ AUTHENTICATE ENTRY ⚡", type="primary", use_container_width=True)
-    st.markdown("</div>", unsafe_allow_html=True)
-    
-    if verify_btn:
-        if sr_no.isdigit() and len(sr_no) == 3:
-            with st.status("📡 Scanning secure database...", expanded=False) as status:
-                time.sleep(1.2) # Immersive scanning effect
-                is_registered = st.session_state.df.astype(str).isin([sr_no]).any().any()
-                status.update(label="Scan complete!", state="complete", expanded=False)
-                
-            if is_registered:
-                play_sound("success") # Play crowd cheer
-                st.balloons()
-                st.markdown("""
-                    <div class="pass-glow-card">
-                        <h2 style='color:#00ff87; margin-bottom:10px; font-size: 35px; text-shadow: 0 0 20px rgba(0,255,135,0.6);'>✅ ACCESS GRANTED</h2>
-                        <div style='font-size: 24px; color: #ffffff; font-weight: 500; line-height:1.6;'>
-                            Welcome to the <span style='color:#00f0ff; font-weight:bold;'>Musical Night</span> of<br>
-                            COMSATS University Islamabad, Attock Campus! 🎶🕺
+        if verify_btn:
+            if sr_no.isdigit() and len(sr_no) == 3:
+                with st.status("📡 Scanning guest list...", expanded=False) as status:
+                    time.sleep(0.7)
+                    # Match both '001' and integer '1' in Excel
+                    clean_df = st.session_state.df.astype(str).apply(lambda x: x.str.strip().str.zfill(3))
+                    raw_df = st.session_state.df.astype(str).apply(lambda x: x.str.strip())
+                    is_registered = clean_df.isin([sr_no]).any().any() or raw_df.isin([sr_no, str(int(sr_no))]).any().any()
+                    status.update(label="Scan complete!", state="complete", expanded=False)
+
+                if is_registered:
+                    trigger_sound("success")
+                    st.balloons()
+                    st.markdown("""
+                        <div class="pass-glow-card">
+                            <h2 style='color:#00ff87; margin-bottom:10px; font-size:34px;'>✅ REGISTERED!</h2>
+                            <div style='font-size:23px; color:#ffffff; font-weight:600; line-height:1.5;'>
+                                Welcome to the <span style='color:#00f0ff;'>Musical Night</span> of<br>
+                                COMSATS University Islamabad, Attock Campus 🎶🕺🎸
+                            </div>
                         </div>
-                    </div>
-                """, unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
+                else:
+                    trigger_sound("error")
+                    st.markdown(f"""
+                        <div class="reject-glow-card">
+                            <h2 style='color:#ff0055; margin-bottom:8px; font-size:30px;'>🛑 ACCESS DENIED</h2>
+                            <div style='font-size:18px;'>Serial Number <b>{sr_no}</b> is not registered in the guest list.</div>
+                        </div>
+                    """, unsafe_allow_html=True)
             else:
-                play_sound("error") # Play error buzzer
-                st.markdown("""
-                    <div class="reject-glow-card">
-                        <h2 style='color:#ff0055; margin-bottom:5px; text-shadow: 0 0 20px rgba(255,0,85,0.6);'>🛑 ACCESS DENIED</h2><br>
-                        <span style="font-size:18px; color:#ffb3c1;">Serial Code <b>{0}</b> is invalid or not in the guest list.</span>
-                    </div>
-                """.format(sr_no), unsafe_allow_html=True)
-        else:
-            st.warning("⚠️ Invalid Code Format. Enter exactly 3 digits.")
+                trigger_sound("error")
+                st.warning("⚠️ Please enter a valid 3-digit number (e.g., 001, 100).")
