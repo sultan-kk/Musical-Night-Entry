@@ -1,6 +1,7 @@
+import io
+import openpyxl
 import pandas as pd
 import streamlit as st
-import openpyxl
 
 st.set_page_config(
     page_title="Registration Data Entry Portal", page_icon="📊", layout="centered"
@@ -33,7 +34,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Initialize Session State to store submitted entries persistently during the session
+# Initialize Session State to store submitted entries persistently
 if "data_list" not in st.session_state:
   st.session_state.data_list = []
 
@@ -72,7 +73,6 @@ with st.form("entry_form", clear_on_submit=True):
           "⚠️ Please fill in all required fields (Sr No, Name, REG No, PH No)!"
       )
     else:
-      # Append data to session list
       new_entry = {
           "Sr No": sr_no,
           "Name": name,
@@ -95,16 +95,11 @@ if st.session_state.data_list:
 
   # Function to convert dataframe to Excel bytes for download
   def convert_df_to_excel(dataframe):
-    output = io.BytesIO() if "io" in globals() else None
-    import io
-
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
       dataframe.to_excel(writer, index=False, sheet_name="Registrations")
     return output.getvalue()
 
-
-  import io
 
   excel_data = convert_df_to_excel(df)
 
