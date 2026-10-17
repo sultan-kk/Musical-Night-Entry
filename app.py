@@ -28,7 +28,6 @@ def trigger_sound_and_focus(status=None):
     <!-- trigger: {timestamp} -->
     <script>
     (function() {{
-        // 1. Keep cursor focused inside the 3-digit input box
         const focusInput = () => {{
             try {{
                 const inputs = window.parent.document.querySelectorAll('input[type="text"]');
@@ -42,14 +41,12 @@ def trigger_sound_and_focus(status=None):
         setTimeout(focusInput, 400);
         setTimeout(focusInput, 800);
 
-        // 2. Play Short Sound Effects (~1.8s max)
         const status = "{status}";
         if (status === "success") {{
             try {{
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioCtx();
 
-                // Fireworks Launch Whistle (0.0s -> 0.35s)
                 const whistle = ctx.createOscillator();
                 const wGain = ctx.createGain();
                 whistle.type = 'sine';
@@ -62,7 +59,6 @@ def trigger_sound_and_focus(status=None):
                 whistle.start(ctx.currentTime);
                 whistle.stop(ctx.currentTime + 0.35);
 
-                // Fireworks Explosion & Clapping Bursts (0.35s -> 1.7s)
                 const burstTimes = [0.36, 0.55, 0.75, 0.95, 1.15, 1.35];
                 burstTimes.forEach((delay, i) => {{
                     const bufferSize = ctx.sampleRate * 0.22;
@@ -88,7 +84,6 @@ def trigger_sound_and_focus(status=None):
                     noise.start(ctx.currentTime + delay);
                 }});
 
-                // Sparkle Chime Chord
                 [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {{
                     const osc = ctx.createOscillator();
                     const g = ctx.createGain();
@@ -102,7 +97,6 @@ def trigger_sound_and_focus(status=None):
                     osc.stop(ctx.currentTime + 1.2);
                 }});
 
-                // Stop AudioContext strictly at 1.8 seconds
                 setTimeout(() => {{ ctx.close(); }}, 1800);
             }} catch(e) {{ console.error(e); }}
         }} else if (status === "error") {{
@@ -130,12 +124,11 @@ def trigger_sound_and_focus(status=None):
     """
     components.html(js_code, height=1)
 
-# Bright & Visible Concert Stage Background + Clean Sharp Typography
+# Advanced Neon & Holographic Styling
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&display=swap');
 
-    /* Bright Live Concert Crowd & Stage Lasers Background */
     .stApp, [data-testid="stAppViewContainer"] {
         background: 
             radial-gradient(circle at 20% 15%, rgba(255, 0, 127, 0.35) 0%, rgba(0, 0, 0, 0) 40%),
@@ -153,7 +146,6 @@ st.markdown("""
         background: rgba(10, 3, 24, 0.4) !important;
     }
 
-    /* Concert Header Banner */
     .hero-container {
         text-align: center;
         padding: 30px 24px;
@@ -175,9 +167,8 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* Crisp, High-Contrast Title */
     .festival-title {
-        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        font-family: 'Poppins', sans-serif;
         font-size: 38px;
         font-weight: 800;
         text-transform: uppercase;
@@ -207,7 +198,6 @@ st.markdown("""
         letter-spacing: 2px;
     }
 
-    /* Style Streamlit Native Bordered Container as VIP Glass Panel */
     [data-testid="stVerticalBlockBorderWrapper"] {
         background: rgba(14, 5, 32, 0.85) !important;
         backdrop-filter: blur(14px) !important;
@@ -217,31 +207,59 @@ st.markdown("""
         box-shadow: 0 12px 40px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 240, 255, 0.35) !important;
     }
 
-    /* Futuristic File Uploader Styling */
+    /* --- CUSTOM HOLOGRAPHIC UPLOADER DESIGN --- */
     [data-testid="stFileUploadDropzone"] {
-        background: rgba(25, 8, 55, 0.85) !important;
-        border: 2px dashed #ff007f !important;
-        border-radius: 18px !important;
-        padding: 30px !important;
-        box-shadow: inset 0 0 20px rgba(255, 0, 127, 0.25) !important;
-        transition: all 0.3s ease !important;
+        background: linear-gradient(135deg, rgba(30, 8, 60, 0.9), rgba(10, 3, 30, 0.95)) !important;
+        border: 2px dashed #00f0ff !important;
+        border-radius: 20px !important;
+        padding: 35px 20px !important;
+        box-shadow: 0 0 30px rgba(0, 240, 255, 0.25), inset 0 0 20px rgba(255, 0, 127, 0.2) !important;
+        transition: all 0.4s ease !important;
     }
 
     [data-testid="stFileUploadDropzone"]:hover {
-        border: 2px solid #00f0ff !important;
-        box-shadow: 0 0 25px rgba(0, 240, 255, 0.6) !important;
+        border-color: #ff007f !important;
+        box-shadow: 0 0 40px rgba(255, 0, 127, 0.6), inset 0 0 25px rgba(0, 240, 255, 0.3) !important;
+        transform: translateY(-2px);
+    }
+
+    /* Hide default boring text elements inside uploader */
+    [data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"] p,
+    [data-testid="stFileUploadDropzone"] small {
+        display: none !important;
+    }
+
+    /* Inject Custom High-Tech Label via CSS */
+    [data-testid="stFileUploadDropzone"] div[data-testid="stMarkdownContainer"]::after {
+        content: "⚡ DROP GUEST DATABASE (.XLSX) HERE ⚡\\A 🔓 UNLIMITED CAPACITY • HIGH-SPEED SECURE UPLOAD";
+        white-space: pre-wrap;
+        display: block;
+        color: #00f0ff;
+        font-weight: 800;
+        font-size: 16px;
+        letter-spacing: 2px;
+        text-align: center;
+        text-shadow: 0 0 12px rgba(0, 240, 255, 0.8);
+        margin-bottom: 15px;
+        animation: glowPulse 2s infinite alternate;
+    }
+
+    @keyframes glowPulse {
+        0% { text-shadow: 0 0 8px rgba(0, 240, 255, 0.6); }
+        100% { text-shadow: 0 0 20px rgba(255, 0, 127, 0.9); }
     }
 
     [data-testid="stFileUploadDropzone"] button {
         background: linear-gradient(90deg, #ff007f, #7f00ff) !important;
         color: #ffffff !important;
         border: 1px solid #00f0ff !important;
-        border-radius: 10px !important;
+        border-radius: 12px !important;
         font-weight: 800 !important;
-        padding: 8px 24px !important;
+        letter-spacing: 1.5px !important;
+        padding: 10px 28px !important;
+        box-shadow: 0 0 15px rgba(255, 0, 127, 0.5) !important;
     }
 
-    /* VIP PIN-Pad Input Box */
     input[type="text"] {
         background-color: rgba(5, 2, 15, 0.9) !important;
         border: 2px solid #ff007f !important;
@@ -261,7 +279,6 @@ st.markdown("""
         color: #ffffff !important;
     }
 
-    /* Neon Pulsing Button */
     button[kind="primary"] {
         background: linear-gradient(45deg, #ff007f, #7f00ff, #00f0ff) !important;
         border: none !important;
@@ -274,7 +291,6 @@ st.markdown("""
         box-shadow: 0 0 25px rgba(255, 0, 127, 0.7) !important;
     }
 
-    /* Active Database Badge */
     .active-db-badge {
         display: inline-block;
         background: rgba(0, 255, 135, 0.2);
@@ -288,7 +304,6 @@ st.markdown("""
         box-shadow: 0 0 15px rgba(0, 255, 135, 0.4);
     }
 
-    /* Granted & Denied Cards */
     .pass-glow-card {
         background: rgba(10, 35, 30, 0.92);
         border: 2px solid #00ff87;
@@ -324,9 +339,6 @@ st.markdown("""
 # 2. Main Gate Container
 with st.container(border=True):
     if st.session_state.df is None:
-        st.markdown("<h3 style='text-align:center; color:#00f0ff; margin-bottom:5px; font-weight:700;'>📂 UPLOAD GUEST LIST DATABASE</h3>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align:center; color:#cbd5e1; font-size:14px;'>Select the official Excel sheet (.xlsx) to unlock the VIP verification terminal</p>", unsafe_allow_html=True)
-        
         uploaded_file = st.file_uploader("Upload Participant Excel File", type=['xlsx', 'xls'], label_visibility="collapsed")
         if uploaded_file is not None:
             try:
@@ -348,7 +360,6 @@ with st.container(border=True):
 
         st.markdown("<h3 style='text-align:center; color:#ffffff; margin-top:15px; font-weight:700;'>🎟️ ENTER 3-DIGIT SERIAL NO</h3>", unsafe_allow_html=True)
         
-        # Pressing Enter triggers submit_serial() and clears the box automatically
         st.text_input(
             "Serial Code",
             max_chars=3,
@@ -361,10 +372,9 @@ with st.container(border=True):
         if st.button("⚡ AUTHENTICATE ENTRY ⚡", type="primary", use_container_width=True):
             submit_serial()
 
-        # Process the submitted serial number
         if st.session_state.last_submitted is not None:
             sr_no = st.session_state.last_submitted
-            st.session_state.last_submitted = None  # Reset after reading
+            st.session_state.last_submitted = None
 
             if sr_no.isdigit() and len(sr_no) == 3:
                 with st.status(f"📡 Scanning Serial No: {sr_no}...", expanded=False) as status:
@@ -398,5 +408,4 @@ with st.container(border=True):
                 trigger_sound_and_focus("error")
                 st.warning("⚠️ Please enter a valid 3-digit number (e.g., 001, 100).")
         else:
-            # Keep cursor focused on initial load
             trigger_sound_and_focus(None)
