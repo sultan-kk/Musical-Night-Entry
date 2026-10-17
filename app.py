@@ -9,66 +9,125 @@ st.set_page_config(page_title="COMSATS Musical Night", page_icon="🎸", layout=
 # Initialize session state
 if 'df' not in st.session_state:
     st.session_state.df = None
+if 'sr_input' not in st.session_state:
+    st.session_state.sr_input = ""
+if 'last_submitted' not in st.session_state:
+    st.session_state.last_submitted = None
 
-# Guaranteed Sound Effect Generator (Web Audio API + Live Crowd Audio)
-def trigger_sound(status):
+# Callback: Fires automatically when user presses ENTER in the input box
+def submit_serial():
+    val = st.session_state.sr_input.strip()
+    if val:
+        st.session_state.last_submitted = val
+        st.session_state.sr_input = ""  # Immediately clear input box
+
+# Auto-Focus Cursor + Short Fireworks/Clapping & Error Sound Generator
+def trigger_sound_and_focus(status=None):
     timestamp = time.time()
-    if status == "success":
-        js_code = f"""
-        <!-- trigger: {timestamp} -->
-        <script>
-        (function() {{
+    js_code = f"""
+    <!-- trigger: {timestamp} -->
+    <script>
+    (function() {{
+        // 1. Keep cursor focused inside the 3-digit input box
+        const focusInput = () => {{
+            try {{
+                const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+                if (inputs.length > 0) {{
+                    const target = inputs[inputs.length - 1];
+                    target.focus();
+                }}
+            }} catch (e) {{ console.log(e); }}
+        }};
+        setTimeout(focusInput, 100);
+        setTimeout(focusInput, 400);
+        setTimeout(focusInput, 800);
+
+        // 2. Play Short Sound Effects (~1.8s max)
+        const status = "{status}";
+        if (status === "success") {{
             try {{
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioCtx();
-                // Musical Victory Fanfare Notes (C5, E5, G5, C6)
-                const notes = [523.25, 659.25, 783.99, 1046.50];
-                notes.forEach((freq, idx) => {{
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.12);
-                    gain.gain.setValueAtTime(0.35, ctx.currentTime + idx * 0.12);
-                    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.12 + 0.45);
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.start(ctx.currentTime + idx * 0.12);
-                    osc.stop(ctx.currentTime + idx * 0.12 + 0.45);
+
+                // Fireworks Launch Whistle (0.0s -> 0.35s)
+                const whistle = ctx.createOscillator();
+                const wGain = ctx.createGain();
+                whistle.type = 'sine';
+                whistle.frequency.setValueAtTime(350, ctx.currentTime);
+                whistle.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.35);
+                wGain.gain.setValueAtTime(0.2, ctx.currentTime);
+                wGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+                whistle.connect(wGain);
+                wGain.connect(ctx.destination);
+                whistle.start(ctx.currentTime);
+                whistle.stop(ctx.currentTime + 0.35);
+
+                // Fireworks Explosion & Clapping Bursts (0.35s -> 1.7s)
+                const burstTimes = [0.36, 0.55, 0.75, 0.95, 1.15, 1.35];
+                burstTimes.forEach((delay, i) => {{
+                    const bufferSize = ctx.sampleRate * 0.22;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let j = 0; j < bufferSize; j++) {{
+                        data[j] = (Math.random() * 2 - 1) * Math.exp(-j / (ctx.sampleRate * 0.06));
+                    }}
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = i === 0 ? 'lowpass' : 'bandpass';
+                    filter.frequency.value = i === 0 ? 600 : 1200 + (i * 150);
+
+                    const nGain = ctx.createGain();
+                    nGain.gain.setValueAtTime(i === 0 ? 0.7 : 0.45, ctx.currentTime + delay);
+                    nGain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.22);
+
+                    noise.connect(filter);
+                    filter.connect(nGain);
+                    nGain.connect(ctx.destination);
+                    noise.start(ctx.currentTime + delay);
                 }});
-                // Play additional cheering audio
-                const cheer = new Audio("https://actions.google.com/sounds/v1/crowds/battle_crowd_celebrate_stutter.ogg");
-                cheer.volume = 0.8;
-                cheer.play().catch(e => console.log(e));
+
+                // Sparkle Chime Chord
+                [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {{
+                    const osc = ctx.createOscillator();
+                    const g = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(freq, ctx.currentTime + 0.36 + idx * 0.08);
+                    g.gain.setValueAtTime(0.25, ctx.currentTime + 0.36 + idx * 0.08);
+                    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
+                    osc.connect(g);
+                    g.connect(ctx.destination);
+                    osc.start(ctx.currentTime + 0.36 + idx * 0.08);
+                    osc.stop(ctx.currentTime + 1.2);
+                }});
+
+                // Stop AudioContext strictly at 1.8 seconds
+                setTimeout(() => {{ ctx.close(); }}, 1800);
             }} catch(e) {{ console.error(e); }}
-        }})();
-        </script>
-        """
-    else:
-        js_code = f"""
-        <!-- trigger: {timestamp} -->
-        <script>
-        (function() {{
+        }} else if (status === "error") {{
             try {{
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 const ctx = new AudioCtx();
-                // Double Security Buzzer
-                [0, 0.25].forEach((delay) => {{
+                [0, 0.22].forEach((delay) => {{
                     const osc = ctx.createOscillator();
                     const gain = ctx.createGain();
                     osc.type = 'sawtooth';
                     osc.frequency.setValueAtTime(140, ctx.currentTime + delay);
-                    osc.frequency.setValueAtTime(95, ctx.currentTime + delay + 0.1);
+                    osc.frequency.setValueAtTime(95, ctx.currentTime + delay + 0.08);
                     gain.gain.setValueAtTime(0.4, ctx.currentTime + delay);
-                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.22);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + delay + 0.18);
                     osc.connect(gain);
                     gain.connect(ctx.destination);
                     osc.start(ctx.currentTime + delay);
-                    osc.stop(ctx.currentTime + delay + 0.22);
+                    osc.stop(ctx.currentTime + delay + 0.18);
                 }});
+                setTimeout(() => {{ ctx.close(); }}, 600);
             }} catch(e) {{ console.error(e); }}
-        }})();
-        </script>
-        """
+        }}
+    }})();
+    </script>
+    """
     components.html(js_code, height=1)
 
 # Bright & Visible Concert Stage Background + Neon UI Styling
@@ -261,7 +320,7 @@ with st.container(border=True):
         if uploaded_file is not None:
             try:
                 with st.spinner("Loading concert guest database..."):
-                    time.sleep(0.8)
+                    time.sleep(0.6)
                     st.session_state.df = pd.read_excel(uploaded_file)
                     st.rerun()
             except Exception as e:
@@ -273,29 +332,43 @@ with st.container(border=True):
         with col2:
             if st.button("🔄 Reset", use_container_width=True):
                 st.session_state.df = None
+                st.session_state.last_submitted = None
                 st.rerun()
 
         st.markdown("<h3 style='text-align:center; color:#ffffff; margin-top:15px;'>🎟️ ENTER 3-DIGIT SERIAL NO</h3>", unsafe_allow_html=True)
-        sr_no = st.text_input("Serial Code", max_chars=3, placeholder="001", label_visibility="collapsed")
+        
+        # Pressing Enter triggers submit_serial() and clears the box automatically
+        st.text_input(
+            "Serial Code",
+            max_chars=3,
+            placeholder="001",
+            label_visibility="collapsed",
+            key="sr_input",
+            on_change=submit_serial
+        )
         st.write("")
-        verify_btn = st.button("⚡ AUTHENTICATE ENTRY ⚡", type="primary", use_container_width=True)
+        if st.button("⚡ AUTHENTICATE ENTRY ⚡", type="primary", use_container_width=True):
+            submit_serial()
 
-        if verify_btn:
+        # Process the submitted serial number
+        if st.session_state.last_submitted is not None:
+            sr_no = st.session_state.last_submitted
+            st.session_state.last_submitted = None  # Reset after reading
+
             if sr_no.isdigit() and len(sr_no) == 3:
-                with st.status("📡 Scanning guest list...", expanded=False) as status:
-                    time.sleep(0.7)
-                    # Match both '001' and integer '1' in Excel
+                with st.status(f"📡 Scanning Serial No: {sr_no}...", expanded=False) as status:
+                    time.sleep(0.4)
                     clean_df = st.session_state.df.astype(str).apply(lambda x: x.str.strip().str.zfill(3))
                     raw_df = st.session_state.df.astype(str).apply(lambda x: x.str.strip())
                     is_registered = clean_df.isin([sr_no]).any().any() or raw_df.isin([sr_no, str(int(sr_no))]).any().any()
-                    status.update(label="Scan complete!", state="complete", expanded=False)
+                    status.update(label=f"Scan complete for #{sr_no}!", state="complete", expanded=False)
 
                 if is_registered:
-                    trigger_sound("success")
+                    trigger_sound_and_focus("success")
                     st.balloons()
-                    st.markdown("""
+                    st.markdown(f"""
                         <div class="pass-glow-card">
-                            <h2 style='color:#00ff87; margin-bottom:10px; font-size:34px;'>✅ REGISTERED!</h2>
+                            <h2 style='color:#00ff87; margin-bottom:10px; font-size:34px;'>✅ REGISTERED! (#{sr_no})</h2>
                             <div style='font-size:23px; color:#ffffff; font-weight:600; line-height:1.5;'>
                                 Welcome to the <span style='color:#00f0ff;'>Musical Night</span> of<br>
                                 COMSATS University Islamabad, Attock Campus 🎶🕺🎸
@@ -303,7 +376,7 @@ with st.container(border=True):
                         </div>
                     """, unsafe_allow_html=True)
                 else:
-                    trigger_sound("error")
+                    trigger_sound_and_focus("error")
                     st.markdown(f"""
                         <div class="reject-glow-card">
                             <h2 style='color:#ff0055; margin-bottom:8px; font-size:30px;'>🛑 ACCESS DENIED</h2>
@@ -311,5 +384,8 @@ with st.container(border=True):
                         </div>
                     """, unsafe_allow_html=True)
             else:
-                trigger_sound("error")
+                trigger_sound_and_focus("error")
                 st.warning("⚠️ Please enter a valid 3-digit number (e.g., 001, 100).")
+        else:
+            # Keep cursor focused on initial load
+            trigger_sound_and_focus(None)
