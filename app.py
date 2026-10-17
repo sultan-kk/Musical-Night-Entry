@@ -130,9 +130,11 @@ def trigger_sound_and_focus(status=None):
     """
     components.html(js_code, height=1)
 
-# Bright & Visible Concert Stage Background + Neon UI Styling
+# Bright & Visible Concert Stage Background + Clean Sharp Typography
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&display=swap');
+
     /* Bright Live Concert Crowd & Stage Lasers Background */
     .stApp, [data-testid="stAppViewContainer"] {
         background: 
@@ -144,6 +146,7 @@ st.markdown("""
         background-position: center center !important;
         background-attachment: fixed !important;
         color: #ffffff !important;
+        font-family: 'Poppins', sans-serif !important;
     }
 
     [data-testid="stHeader"] {
@@ -153,52 +156,60 @@ st.markdown("""
     /* Concert Header Banner */
     .hero-container {
         text-align: center;
-        padding: 28px 20px;
-        background: rgba(18, 6, 40, 0.78);
+        padding: 30px 24px;
+        background: rgba(12, 4, 28, 0.88);
         border: 2px solid #ff007f;
         border-radius: 22px;
         margin-bottom: 20px;
-        box-shadow: 0 0 35px rgba(255, 0, 127, 0.45), inset 0 0 20px rgba(0, 240, 255, 0.2);
-        backdrop-filter: blur(10px);
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.8), 0 0 25px rgba(255, 0, 127, 0.35);
+        backdrop-filter: blur(12px);
     }
 
     .festival-sub {
-        font-size: 15px;
+        font-family: 'Poppins', sans-serif;
+        font-size: 14px;
         letter-spacing: 5px;
         color: #00f0ff;
-        text-shadow: 0 0 12px #00f0ff;
-        font-weight: 800;
+        font-weight: 700;
         text-transform: uppercase;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
     }
 
+    /* Crisp, High-Contrast Title */
     .festival-title {
-        font-family: 'Montserrat', 'Impact', sans-serif;
-        font-size: 44px;
-        font-weight: 900;
+        font-family: 'Poppins', 'Segoe UI', sans-serif;
+        font-size: 38px;
+        font-weight: 800;
         text-transform: uppercase;
         letter-spacing: 3px;
+        word-spacing: 6px;
         color: #ffffff;
-        text-shadow: 0 0 15px #ff007f, 0 0 35px #7f00ff;
-        margin: 5px 0;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 0.95), 0 0 14px rgba(0, 240, 255, 0.55);
+        margin: 8px 0 12px 0;
+        line-height: 1.25;
+    }
+
+    .title-highlight {
+        color: #ff2a9d;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 0.95), 0 0 16px rgba(255, 42, 157, 0.65);
     }
 
     .campus-tag {
         display: inline-block;
-        margin-top: 8px;
-        padding: 5px 18px;
-        background: rgba(0, 240, 255, 0.18);
+        margin-top: 6px;
+        padding: 6px 20px;
+        background: rgba(0, 240, 255, 0.15);
         border: 1px solid #00f0ff;
         border-radius: 30px;
-        color: #e2f1ff;
+        color: #ffffff;
         font-size: 13px;
-        font-weight: 600;
-        letter-spacing: 1.5px;
+        font-weight: 700;
+        letter-spacing: 2px;
     }
 
     /* Style Streamlit Native Bordered Container as VIP Glass Panel */
     [data-testid="stVerticalBlockBorderWrapper"] {
-        background: rgba(14, 5, 32, 0.82) !important;
+        background: rgba(14, 5, 32, 0.85) !important;
         backdrop-filter: blur(14px) !important;
         border: 2px solid #00f0ff !important;
         border-radius: 24px !important;
@@ -256,7 +267,7 @@ st.markdown("""
         border: none !important;
         color: #ffffff !important;
         font-size: 20px !important;
-        font-weight: 900 !important;
+        font-weight: 800 !important;
         letter-spacing: 2.5px !important;
         padding: 16px !important;
         border-radius: 15px !important;
@@ -305,7 +316,7 @@ st.markdown("""
 st.markdown("""
     <div class="hero-container">
         <div class="festival-sub">🎵 LIVE CONCERT GATEWAY 🎵</div>
-        <div class="festival-title">🎸 COMSATS Musical Night</div>
+        <div class="festival-title">🎸 COMSATS <span class="title-highlight">MUSICAL NIGHT</span></div>
         <div class="campus-tag">ISLAMABAD • ATTOCK CAMPUS</div>
     </div>
 """, unsafe_allow_html=True)
@@ -313,7 +324,7 @@ st.markdown("""
 # 2. Main Gate Container
 with st.container(border=True):
     if st.session_state.df is None:
-        st.markdown("<h3 style='text-align:center; color:#00f0ff; margin-bottom:5px;'>📂 UPLOAD GUEST LIST DATABASE</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:center; color:#00f0ff; margin-bottom:5px; font-weight:700;'>📂 UPLOAD GUEST LIST DATABASE</h3>", unsafe_allow_html=True)
         st.markdown("<p style='text-align:center; color:#cbd5e1; font-size:14px;'>Select the official Excel sheet (.xlsx) to unlock the VIP verification terminal</p>", unsafe_allow_html=True)
         
         uploaded_file = st.file_uploader("Upload Participant Excel File", type=['xlsx', 'xls'], label_visibility="collapsed")
@@ -335,7 +346,7 @@ with st.container(border=True):
                 st.session_state.last_submitted = None
                 st.rerun()
 
-        st.markdown("<h3 style='text-align:center; color:#ffffff; margin-top:15px;'>🎟️ ENTER 3-DIGIT SERIAL NO</h3>", unsafe_allow_html=True)
+        st.markdown("<h3 style='text-align:center; color:#ffffff; margin-top:15px; font-weight:700;'>🎟️ ENTER 3-DIGIT SERIAL NO</h3>", unsafe_allow_html=True)
         
         # Pressing Enter triggers submit_serial() and clears the box automatically
         st.text_input(
@@ -368,7 +379,7 @@ with st.container(border=True):
                     st.balloons()
                     st.markdown(f"""
                         <div class="pass-glow-card">
-                            <h2 style='color:#00ff87; margin-bottom:10px; font-size:34px;'>✅ REGISTERED! (#{sr_no})</h2>
+                            <h2 style='color:#00ff87; margin-bottom:10px; font-size:34px; font-weight:800;'>✅ REGISTERED! (#{sr_no})</h2>
                             <div style='font-size:23px; color:#ffffff; font-weight:600; line-height:1.5;'>
                                 Welcome to the <span style='color:#00f0ff;'>Musical Night</span> of<br>
                                 COMSATS University Islamabad, Attock Campus 🎶🕺🎸
@@ -379,7 +390,7 @@ with st.container(border=True):
                     trigger_sound_and_focus("error")
                     st.markdown(f"""
                         <div class="reject-glow-card">
-                            <h2 style='color:#ff0055; margin-bottom:8px; font-size:30px;'>🛑 ACCESS DENIED</h2>
+                            <h2 style='color:#ff0055; margin-bottom:8px; font-size:30px; font-weight:800;'>🛑 ACCESS DENIED</h2>
                             <div style='font-size:18px;'>Serial Number <b>{sr_no}</b> is not registered in the guest list.</div>
                         </div>
                     """, unsafe_allow_html=True)
